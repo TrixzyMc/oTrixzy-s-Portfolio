@@ -1,3 +1,9 @@
+# Requires (DEVELOPED ON):
+
+# - Skript [ https://github.com/SkriptLang/Skript/releases ]
+# - Skbee [ https://github.com/ShaneBeee/SkBee/releases ]
+# - Skript-GUI [ https://github.com/APickledWalrus/skript-gui/releases ]
+
 options:
     reset-every: 30 minutes # 1 second, 1 minute, 1 hour, 1 day, 1 month, 1 year. Delete this and every {@reset-every} part to remove this.
     success-title: "&aSuccess!" with subtitle "&aYou have passed the Verification System Successfully." to {_p} for 1 second with fade in 0.5 seconds and fade out 1 seconds
