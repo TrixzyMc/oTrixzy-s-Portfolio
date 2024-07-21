@@ -2,9 +2,15 @@
 # ----------------------- DO NOT TOUCH BELOW -----------------------
 # ------------------------ CREATOR: oTrixzy ------------------------
 # -------------------------- Version: 1.0 --------------------------
-# -------------------- Released Date: 5/15/2024 --------------------
+# -------------------- Released Date: 7/21/2024 --------------------
 # ----------------------- Github:  -----------------------
 # ------------------------------------------------------------------
+
+# Requires (DEVELOPED ON):
+
+# - Skript [ https://github.com/SkriptLang/Skript/releases ]
+# - Skbee [ https://github.com/ShaneBeee/SkBee/releases ]
+# - Skript-GUI [ https://github.com/APickledWalrus/skript-gui/releases ]
 
 # [!] -- Do not touch this, Deleting fixes a bug. We will give you support if you touched it. -- [!]
 
