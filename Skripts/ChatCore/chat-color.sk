@@ -1,0 +1,118 @@
+# ------------------------------------------------------------------
+# ----------------------- DO NOT TOUCH BELOW -----------------------
+# ------------------------ CREATOR: oTrixzy ------------------------
+# -------------------------- Version: 1.0 --------------------------
+# -------------------- Released Date: 5/15/2024 --------------------
+# ----------------------- Github:  -----------------------
+# ------------------------------------------------------------------
+
+# [!] -- Do not touch this, Deleting fixes a bug. We will give you support if you touched it. -- [!]
+
+on load:
+    delete {data::RegisteredColors::*} 
+    send "&e&lChatCore &8- &fWe have detected a reload, Therefore we reloaded the colors. Do not be scared, This is not a bug or anything. " to all players where [input has permission "chatCore.reloaded"]
+
+# [!] Do not move this up, You shall touch. [!]
+# (!) Format: registerNewColor(lastNumber+1, "ColorName", "Color Permission", "ColorByHex, Or Gradient.") (!)
+
+on load:
+    registerNewColor(1, "White", "chatColor.white", "<##ffffff>")
+    registerNewColor(2, "Red", "chatColor.red", "<##FF0000>")
+    registerNewColor(3, "Orange", "chatColor.orange", "<##FFA500>")
+    registerNewColor(4, "Yellow", "chatColor.yellow", "<##FFFF00>")
+    registerNewColor(5, "Green", "chatColor.green", "<##008000>")
+    registerNewColor(6, "Blue", "chatColor.blue", "<##0000FF>")
+    registerNewColor(7, "Purple", "chatColor.purple", "<##800080>")
+    registerNewColor(8, "Pink", "chatColor.pink", "<##FFC0CB>")
+    registerNewColor(9, "Brown", "chatColor.Brown", "<##A52A2A>")
+    registerNewColor(10, "Gray", "chatColor.Gray", "<##808080>")
+    registerNewColor(11, "Silver", "chatColor.Silver", "<##C0C0C0>")
+    registerNewColor(12, "Gold", "chatColor.Gold", "<##FFD700>")
+    registerNewColor(13, "Beige", "chatColor.Beige", "<##F5F5DC>")
+    registerNewColor(14, "Turquoise", "chatColor.Turquoise", "<##40E0D0>")
+    registerNewColor(15, "Maroon", "chatColor.Maroon", "<##800000>")
+    registerNewColor(16, "Indigo", "chatColor.Indigo", "<##4B0082>")
+    registerNewColor(17, "Lavender", "chatColor.Lavender", "<##E6E6FA>")
+    registerNewColor(18, "Teal", "chatColor.Teal", "<##008080>")
+    registerNewColor(19, "Cyan", "chatColor.Cyan", "<##00FFFF>")
+    registerNewColor(20, "Solid Blue", "chatColor.solidBlue", "<##008BFF>")
+    registerNewColor(21, "Blue Ice", "chatColor.gradientBlue", "<gradient:##A9FFFF:##00AAFF>")
+
+# [!] -- Do not touch below -- [!]
+
+function registerNewColor(id: integer, name: string, requiredPermission: string, colorHex: string):
+    if (size of {_colorHex}) > 6:
+        broadcast "&4&lCRITICAL ERROR &8- &fUse only 6 characters or numbers, or this will not work.%nl% &8(&aThe Color: &f%{_name}%) &8(&cDISABLED&8)"
+        stop
+    if {_colorHex} contains "&":
+        broadcast "&c&lMinor Error &8- &fWe have disabled %{_name}% because it contains &a& &ftherefore it'd cause bugs, Please use hex codes. &8(&cDISABLED&8)"
+        stop
+
+    set {data::RegisteredColors::%{_id}%} to true
+
+    add {_id} to {data::RegisteredColors::IDS::*}
+    set {data::RegisteredColors::%{_id}%::name} to {_name}
+    set {data::RegisteredColors::%{_id}%::color} to {_colorHex}
+    set {data::RegisteredColors::%{_id}%::lore} to " %{_colorHex}%<bold>| %{_colorHex}%Lore Coming Soon..."
+    set {data::RegisteredColors::%{_id}%::requiredPermission} to {_requiredPermission}
+
+function chatColor(p: player):
+    set {_slots::*} to (all integers between 10 and 16),(all integers between 19 and 25),(all integers between 28 and 34)
+    set {_name} to "%{_p}% tags"
+    create a gui with virtual chest inventory with 5 rows named "%{_name}%":
+        make gui slot {_slots::*} with gray stained glass pane named "" 
+        open last created gui to {_p}
+        make gui slot (integers between 0 and 9, integers between 17 and 18, integers between 26 and 27, integers between 35 and 50) with black stained glass pane named " "
+        make gui slot 4 with book and quill named "&c%"&c&lChatColor"%" with lore "%"&8chatcore information"%" and "" and "&c&l| &cWhat is a chat color?" and "&c&l| &fA &cChatColor &fwill style your " and "&c&l| &cChats &fto look more pretty." and "&c&l| &fSelect a nametag to select your &cChatColor&f!" and "" and "&e&n%"Ask staff if you need help or have a question!"%"
+        make gui slot 40 with paper of mending named "&7Default" with lore "&8&l | &rThis will set your ChatColor to &7Default." and "&8&l | &rIf this causes any problems, Please contact hr or a developer." with nbt from "{HideFlags:127}":
+            delete {data::ChatColor::%uuid of {_p}%}
+            set {_actionBarMessage} to "&e&lChatCore &8- &fSet your chat color to &7Default."
+            send action bar "%{_actionBarMessage}%"
+            close player's inventory
+
+        loop (size of {data::RegisteredColors::IDS::*}) times:
+            set {_id} to loop-value
+            set {_name} to {data::RegisteredColors::%{_id}%::name}
+            set {_lore} to {data::RegisteredColors::%{_id}%::lore}
+            set {_color} to {data::RegisteredColors::%{_id}%::color}
+            set {_requiredPermission} to {data::RegisteredColors::%{_id}%::requiredPermission}
+
+            if {_slots::%{_slots}%} >= 34:
+                send "&e&lChatCore &8- &fChat Color Gui Has been overflooded, We have stopped this from causes bugs." to all players where [input has permission "op"]
+                stop
+                  
+            if {_p} has permission "%{_requiredPermission}%":
+                add 1 to {_slots}
+                make gui slot {_slots::%{_slots}%} with name tag of mending named "%{_color}%%{_name}%" with lore "%{_lore}%" with nbt from "{HideFlags:127}":
+                    set {data::ChatColor::%uuid of {_p}%} to {_color}
+                    set {_actionBarMessage} to "%{_color}%%{_name}%"
+                    close player's inventory
+                    send action bar "&e&lChatCore &8- &fSet your chat color to %{_actionBarMessage}%"
+                if {data::RegisteredColors::%{_id}%::color} contains "gradient":
+                    make gui slot {_slots::%{_slots}%} with name tag of mending named mini message from "%{_color}%%{_name}%" with lore mini message from "%{_lore}%" with nbt from "{HideFlags:127}":
+                        set {data::ChatColor::%uuid of {_p}%} to {_color}
+                        set {_actionBarMessage} to mini message from "%{_color}%%{_name}%"
+                        send action bar "&e&lChatCore &8- &fSet your chat color to %{_actionBarMessage}%"
+                        close player's inventory
+                
+
+on chat:
+    loop all players:
+        if message contains "%loop-player%":
+            replace "%loop-player%" with "&a@%loop-player%&f" in message 
+            play sound "BLOCK_NOTE_BLOCK_PLING" with volume 0.4 and pitch 1 to loop-player
+            
+    if {data::ChatColor::%uuid of player%} is set:
+    
+        if {data::ChatColor::%uuid of player%} contains "gradient":
+            set message to mini message from "%{data::ChatColor::%uuid of player%}%%message%"
+
+        else:
+            set message to "%{data::ChatColor::%uuid of player%}%%message%"
+            
+    set chat format to "%player's prefix% %player%&7: %message%"
+    stop
+
+command /chatColor:
+    trigger:
+        chatColor(player)
