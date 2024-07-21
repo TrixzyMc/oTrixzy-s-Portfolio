@@ -4,7 +4,7 @@ Hello there! Call me oTrixzy for the time we know eachother. 👋
 
 
 - **I am probabaly skripting, or something I don't know**
-- **Don't steal my skripts please :3 Thanks! 🤓**
+- **All skripts of mine are Free To Use!**
 - **I typically become developer for random servers cause why not its fun**
 
 
