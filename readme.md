@@ -11,7 +11,8 @@ Hello there! Call me oTrixzy for the time we know eachother. 👋
 ## ❓ My Projects:
 
 - Developer at [DynoGens](https://discord.gg/x7VsSFFh7w)
-- Owner at [PlushedMC](https://discord.gg/87P3STS8E4) <NOT UPDATED>
+- Owner at [PlushedMC](https://discord.gg/87P3STS8E4) **NOT UPDATED**
+- Owner at [NexusPR](https://discord.gg/uhSyVapSV3)
 
 ## 🗣 FAQ
 
