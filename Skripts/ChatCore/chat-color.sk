@@ -70,7 +70,7 @@ function chatColor(p: player):
         open last created gui to {_p}
         make gui slot (integers between 0 and 9, integers between 17 and 18, integers between 26 and 27, integers between 35 and 50) with black stained glass pane named " "
         make gui slot 4 with book and quill named "&c%"&c&lChatColor"%" with lore "%"&8chatcore information"%" and "" and "&c&l| &cWhat is a chat color?" and "&c&l| &fA &cChatColor &fwill style your " and "&c&l| &cChats &fto look more pretty." and "&c&l| &fSelect a nametag to select your &cChatColor&f!" and "" and "&e&n%"Ask staff if you need help or have a question!"%"
-        make gui slot 40 with paper of mending named "&7Default" with lore "&8&l | &rThis will set your ChatColor to &7Default." and "&8&l | &rIf this causes any problems, Please contact hr or a developer." with nbt from "{HideFlags:127}":
+        make gui slot 40 with paper of mending named "&7Default" with lore "&8&l | &rThis will set your ChatColor to &7Default." and "&8&l | &rIf this causes any problems, Please contact hr or a developer." with all item flags:
             delete {data::ChatColor::%uuid of {_p}%}
             set {_actionBarMessage} to "&e&lChatCore &8- &fSet your chat color to &7Default."
             send action bar "%{_actionBarMessage}%"
@@ -89,13 +89,13 @@ function chatColor(p: player):
                   
             if {_p} has permission "%{_requiredPermission}%":
                 add 1 to {_slots}
-                make gui slot {_slots::%{_slots}%} with name tag of mending named "%{_color}%%{_name}%" with lore "%{_lore}%" with nbt from "{HideFlags:127}":
+                make gui slot {_slots::%{_slots}%} with name tag of mending named "%{_color}%%{_name}%" with lore "%{_lore}%" with all item flags:
                     set {data::ChatColor::%uuid of {_p}%} to {_color}
                     set {_actionBarMessage} to "%{_color}%%{_name}%"
                     close player's inventory
                     send action bar "&e&lChatCore &8- &fSet your chat color to %{_actionBarMessage}%"
                 if {data::RegisteredColors::%{_id}%::color} contains "gradient":
-                    make gui slot {_slots::%{_slots}%} with name tag of mending named mini message from "%{_color}%%{_name}%" with lore mini message from "%{_lore}%" with nbt from "{HideFlags:127}":
+                    make gui slot {_slots::%{_slots}%} with name tag of mending named mini message from "%{_color}%%{_name}%" with lore mini message from "%{_lore}%" with all item flags:
                         set {data::ChatColor::%uuid of {_p}%} to {_color}
                         set {_actionBarMessage} to mini message from "%{_color}%%{_name}%"
                         send action bar "&e&lChatCore &8- &fSet your chat color to %{_actionBarMessage}%"
