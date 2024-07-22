@@ -1,0 +1,57 @@
+on load:
+    delete {-ChatCore::ChatTags::Registered::*}
+    send "&e&lChatCore-Tags &8- &fWe have detected a reload, Therefore we reloaded the tags. Do not be scared, This is not a bug or anything. " to all players where [input has permission "ChatCore;Admin"]
+
+on load:
+    registerTag(1, "&8[&eELITE&8]", "chatCore.tags.Elite")
+    registerTag(2, "&8[<gradient:##A9FFFF:##00AAFF>[Gradient Test]", "chatCore.Tags.Gradien-test")
+
+function registerTag(id: integer, tag: string, required-permission: string):
+    set {-ChatCore::ChatTags::Registered::%{_id}%} to true
+
+    set {-ChatCore::ChatTags::Registered::%{_id}%::name} to {_tag}
+    set {-ChatCore::ChatTags::Registered::%{_id}%::requiredPermission} to {_required-permission}
+
+function ChatTags(p: player, page: number=1):
+    create a gui with virtual chest inventory with 5 rows named "ChatTags (Page ##%{_page}%)":
+        make gui slot (all integers between 0 and 44) with black stained glass pane named "&7" with all item flags 
+        make gui slot (all integers between 10 and 16, all integers between 19 and 25, all integers between 28 and 34) with stone button named "&7" with all item flags
+        make gui slot 4 with knowledge book named "" with all item flags
+        set {_start_index} to ({_page} - 1) * 21 + 1
+        set {_end_index} to {_page} * 21
+        
+        if {_page} > 1:
+            make gui slot 36 with strong healing tipped arrow named "&cʙᴀᴄᴋ ᴘᴀɢᴇ" with all item flags:
+                ChatTags({_p}, ({_page} - 1))
+
+        set {_slot} to 10
+
+        loop all integers between {_start_index} and {_end_index}:
+            exit loop if {-ChatCore::ChatTags::Registered::%loop-value%} is not set
+            
+            if {-ChatCore::ChatTags::Registered::%loop-value%::name} contains "gradient":
+                set {_text} to mini message from "%{-ChatCore::ChatTags::Registered::%loop-value%::name}%"
+            else:
+                set {_text} to "%{-ChatCore::ChatTags::Registered::%loop-value%::name}%"
+            
+            if {_p} has permission "%{-ChatCore::ChatTags::Registered::%loop-value%::requiredPermission}%":
+                make gui slot {_slot} with nametag of mending named "%{_text}%" with all item flags:
+                    set player's suffix to "%{_text}%"
+                    close player's inventory
+                    send action bar "&e&lChatCore-Tags &8- &fSet your Chat Tag to %{_text}%!"
+                    
+            add 1 to {_slot}
+            
+            if loop-value >= 21:
+                make gui slot 44 with strong swiftness tipped arrow named "&bɴᴇxᴛ ᴘᴀɢᴇ" with all item flags:
+                    ChatTags({_p}, ({_page} + 1))
+            
+            if {_slot} = 17 or 26 or 35:
+                add 2 to {_slot}
+
+    open last gui to {_p}
+
+command /tags:
+    trigger:
+        ChatTags(player)
+
