@@ -7,7 +7,10 @@ Hello there! Call me oTrixzy for the time we know eachother. 👋
 - **All skripts of mine are Free To Use!**
 - **I typically become developer for random servers cause why not its fun**
 
+## Want to hire me, or Get More Skripts? I post more frequently in My Discord!
 
+- SOON TO COME!
+  
 ## ❓ My Projects:
 
 - Developer at [DynoGens](https://discord.gg/x7VsSFFh7w)
