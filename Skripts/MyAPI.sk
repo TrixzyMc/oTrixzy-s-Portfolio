@@ -93,27 +93,31 @@ function readJsonData(key: string, p: player={_p}):: object:
 function getMessageContents(message: text,p: player):: text:
 	set {_returnedMessage} to "%{_message}%"
 	if {_returnedMessage} contains "<prefix>":
-		replace all "<prefix>" in {_returnedMessage} with readJsonData("prefix")
+		set {_returnedMessage} to replaceInMessage({_returnedMessage}, "<prefix>", readJsonData("prefix"))
 	if {_returnedMessage} contains "<cooldown>":
-		replace all "<cooldown>" in {_returnedMessage} with "%getCommandCooldown({_p})%"
+		set {_returnedMessage} to replaceInMessage({_returnedMessage}, "<cooldown>", "%getCommandCooldown({_p})%")
 	
-	replace all """" in {_returnedMessage} with ""
-	replace all "&" in {_returnedMessage} with "§"
+	set {_returnedMessage} to replaceInMessage({_returnedMessage}, """", "")
+	set {_returnedMessage} to replaceInMessage({_returnedMessage}, "&", "§")
 	
 	return {_returnedMessage}
 	
-function setCommandCooldown(p: player, duration: number):
+function setCommandCooldown(p: player, duration: number=5):
 	if getCommandCooldown({_p}) is set:
-		set {_cooldownMessage} to "%readJsonData("cooldownMessage", {_p})%"
-		send readJsonData("cooldownMessage", {_p}) to {_p}
+		set {_cooldown_message} to "%readJsonData("cooldown_message", {_p})%"
+		send readJsonData("cooldown_message", {_p}) to {_p}
 	else:
 		set {CooldownHandler::%{_p}'s uuid%} to {_duration}
-		while {CooldownHandler::%{_p}'s uuid%} >= 0:
+		while {CooldownHandler::%{_p}'s uuid%} > -0.1:
 			set {CooldownHandler::%{_p}'s uuid%} to 0 if {CooldownHandler::%{_p}'s uuid%} is 0.1
-			send action bar readJsonData("cooldownMessage", {_p}) to {_p}
+			send action bar readJsonData("cooldown_message", {_p}) to {_p}
 			remove 0.1 from {CooldownHandler::%{_p}'s uuid%}
 			wait 0.1 seconds
 		delete {CooldownHandler::%{_p}'s uuid%}
 
 function getCommandCooldown(p: player) :: number:
 	return {CooldownHandler::%{_p}'s uuid%} if {CooldownHandler::%{_p}'s uuid%} is set
+
+function replaceInMessage(message: text, from: object, to: object):: text:
+	replace all "%{_from}%" in {_message} with "%{_to}%"
+	return {_message}
