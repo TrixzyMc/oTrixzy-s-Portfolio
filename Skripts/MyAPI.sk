@@ -1,93 +1,95 @@
 ####################
 ##### IMPORTANT ####
 ####################
-# Do not edit without knowing what your doing.
-## This code includes java.
-## Required Addons: 
-#### Skript(https://github.com/SkriptLang/Skript/releases/)
-#### The Bee(https://modrinth.com/plugin/skbee)
-#### Sk-Reflect(https://github.com/SkriptLang/skript-reflect/releases)
+# - Do not edit without knowing what your doing.
+## - This code requires java knowledge!
+## - Required Addons: 
+### - Skript(https://github.com/SkriptLang/Skript/releases/)
+### - The Bee(https://modrinth.com/plugin/skbee)
+### - Sk-Reflect(https://github.com/SkriptLang/skript-reflect/releases)
 
 on load:
-    ensureConfigFile()
-
+	ensureConfigFile()
+	
 import:
-    java.io.FileWriter
-    java.io.File
-    java.io.FileReader
-    com.google.gson.Gson
-    com.google.gson.GsonBuilder
-    com.google.gson.JsonObject
-    com.google.gson.JsonParser
-    
+	java.io.FileWriter
+	java.io.File
+	java.io.FileReader
+	com.google.gson.Gson
+	com.google.gson.GsonBuilder
+	com.google.gson.JsonObject
+	com.google.gson.JsonParser
+	
 ####################
 ##### FUNCTIONS ####
 ####################
 
 function addJsonProperty(key: text, value: text):
-    set {_filePath} to "plugins/Skript/scripts/oTrixzyAPI/config.json"
-    set {_file} to new File({_filePath})
+	set {_filePath} to "plugins/Skript/scripts/oTrixzyAPI/config.json"
+	set {_file} to new File({_filePath})
+	
+	if {_file}.exists() is false:
+		send "Config file does not exist. Creating a new one..." to all players where [input has permission "api.admin"]
+		ensureConfigFile()
 
-    if {_file}.exists() is false:
-        broadcast "Config file does not exist. Creating a new one..."
-        ensureConfigFile()
+	set {_parser} to new JsonParser()
+	set {_jsonElement} to {_parser}.parse(new FileReader({_filePath}))
 
-    set {_parser} to new JsonParser()
-    set {_jsonElement} to {_parser}.parse(new FileReader({_filePath}))
+	if {_jsonElement}.isJsonObject():
+		set {_jsonObject} to {_jsonElement}.getAsJsonObject()
+	else:
+		send "Config file is not a valid JSON object. Creating a new JSON object." to all players where [input has permission "api.admin"]
+		set {_jsonObject} to new JsonObject()
+	   
+	if {_jsonObject}.has({_key}):
+		stop
 
-    if {_jsonElement}.isJsonObject():
-        set {_jsonObject} to {_jsonElement}.getAsJsonObject()
-    else:
-        broadcast "Config file is not a valid JSON object. Creating a new JSON object."
-        set {_jsonObject} to new JsonObject()
+	{_jsonObject}.addProperty({_key}, {_value})
 
-    {_jsonObject}.addProperty({_key}, {_value})
+	set {_gson} to new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create()
+	set {_writer} to new FileWriter({_filePath}, false)
+	{_gson}.toJson({_jsonObject}, {_writer})
+	{_writer}.close()
 
-    set {_gson} to new GsonBuilder().setPrettyPrinting().create()
-    set {_writer} to new FileWriter({_filePath}, false)
-    {_gson}.toJson({_jsonObject}, {_writer})
-    {_writer}.close()
-
-    broadcast "Property '%{_key}%' set to '%{_value}%' in the config file."
+	send "Property '%{_key}%' set to '%{_value}%' in the config file." to all players where [input has permission "api.admin"]
 	
 function ensureConfigFile():
-    set {_filePath} to "plugins/Skript/scripts/oTrixzyAPI/config.json"
-    set {_file} to new File({_filePath})
+	set {_filePath} to "plugins/Skript/scripts/oTrixzyAPI/config.json"
+	set {_file} to new File({_filePath})
 
-    if {_file}.getParentFile().exists() is false:
-        {_file}.getParentFile().mkdirs()
+	if {_file}.getParentFile().exists() is false:
+		{_file}.getParentFile().mkdirs()
 
-    if {_file}.exists() is false:
-        set {_created} to {_file}.createNewFile()
-        if {_created} is true:
-            broadcast "Config file created successfully. Writing default config..."
-            set {_obj} to new JsonObject()
-            {_obj}.addProperty("prefix", "{@prefix}")
-
-            set {_gson} to new GsonBuilder().setPrettyPrinting().create()
-            set {_writer} to new FileWriter({_filePath}, false)
-            {_gson}.toJson({_obj}, {_writer})
-            {_writer}.close()
-        else:
-            broadcast "Failed to create config file."
-    else:
-        broadcast "Config file already exists. Using existing config."
+	if {_file}.exists() is false:
+		set {_created} to {_file}.createNewFile()
+		if {_created} is true:
+			send "Config file created successfully. Writing default config..." to all players where [input has permission "api.admin"]
+			set {_obj} to new JsonObject()
+			
+			set {_gson} to new GsonBuilder().setPrettyPrinting().create()
+			set {_writer} to new FileWriter({_filePath}, false)
+			{_gson}.toJson({_obj}, {_writer})
+			{_writer}.close()
+		else:
+			send "Failed to create config file." to all players where [input has permission "api.admin"]
+	else:
+		send "Config file already exists. Using existing config." to all players where [input has permission "api.admin"]
 
 function readJsonData(key: string, p: player={_p}):: object:
-    set {_filePath} to "plugins/Skript/scripts/oTrixzyAPI/config.json"
-    set {_parser} to new JsonParser()
-    set {_jsonElement} to {_parser}.parse(new FileReader({_filePath}))
-    if {_jsonElement}.isJsonObject():
-        set {_jsonObject} to {_jsonElement}.getAsJsonObject()
-        if {_jsonObject}.has({_key}):
-            set {_idValue} to {_jsonObject}.get({_key})
-            set {_finalMessage} to getMessageContents("%{_idValue}%", {_p})
-            return {_finalMessage}
-        else:
-            broadcast "Invalid Key: %{_key}%"
-    else:
-        broadcast "Config file does not contain a valid JSON object."
-        
+	set {_filePath} to "plugins/Skript/scripts/oTrixzyAPI/config.json"
+	set {_parser} to new JsonParser()
+	set {_jsonElement} to {_parser}.parse(new FileReader({_filePath}))
+	if {_jsonElement}.isJsonObject():
+		set {_jsonObject} to {_jsonElement}.getAsJsonObject()
+		if {_jsonObject}.has({_key}):
+			set {_idValue} to {_jsonObject}.get({_key})
+			set {_finalMessage} to getMessageContents("%{_idValue}%", {_p})
+			return {_finalMessage}
+		else:
+			send "Invalid Key: %{_key}%" to all players where [input has permission "api.admin"]
+	else:
+		send "Config file does not contain a valid JSON object." to all players where [input has permission "api.admin"]
+		
 function getMessageContents(message: text,p: player):: text:
 	set {_returnedMessage} to "%{_message}%"
 	if {_returnedMessage} contains "<prefix>":
@@ -96,9 +98,10 @@ function getMessageContents(message: text,p: player):: text:
 		replace all "<cooldown>" in {_returnedMessage} with "%getCommandCooldown({_p})%"
 	
 	replace all """" in {_returnedMessage} with ""
+	replace all "&" in {_returnedMessage} with "§"
 	
 	return {_returnedMessage}
-    
+	
 function setCommandCooldown(p: player, duration: number):
 	if getCommandCooldown({_p}) is set:
 		set {_cooldownMessage} to "%readJsonData("cooldownMessage", {_p})%"
