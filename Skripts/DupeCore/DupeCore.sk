@@ -1,0 +1,133 @@
+# Options will be moved to config in the future!
+options:
+	exclusiveItemLore: &c&lEXCLUSIVE ITEM # Add this to any item that you want to be exclusive and not dupeable.
+	allowUnbreakableItems: false
+	
+	# Prefixes
+	prefix_success: &8[&a&l!&8] &8»&7
+	prefix_error: &8[&c&l!&8] &8»&7
+	prefix_warn: &8[&e&l!&8] &8»&7
+	prefix_log: &8[&f&l!&8] &8»&7
+	
+	# Sounds
+	sound_success: BLOCK.NOTE_BLOCK.PLING
+	sound_error: BLOCK.NOTE_BLOCK.BASS
+	sound_warning: ENTITY.BLAZE.HURT
+	
+	# API
+	useCoreAPI: true # Required! Visit: https://github.com/TrixzyMc/oTrixzy-Portfolio/blob/portfolio/Skripts/MyAPI.sk for more information!
+ 
+# Don't change under this, It is for config file use `plugin/Skript/scripts/oTrixzyAPI/config.json` to edit messages.
+# For Experienced Users: addJsonProperty(<key>, <value>)
+on load: 
+	addJsonProperty("prefix", "&6&lSERVER&e&lNAME &8»&7")
+	addJsonProperty("cooldown_message", "<prefix> You are currently on cooldown for &b<cooldown> seconds&7!")
+	addJsonProperty("duped_success_message", "<prefix> Your item has been duped &b<amount> times&7!")
+	addJsonProperty("duped_error_message", "<prefix> Your item cannot be duped!")
+	addJsonProperty("no_dupe_perms", "<prefix> You do not have permission to do &b<amount> times!")
+	addJsonProperty("contains_banned_items_message", "<prefix> Your item cannot be duped because it contains banned items!")
+	
+function blacklistItem(p: player):
+	if {_p}'s held item is air:
+		send "{@prefix_error} You cannot blacklist air!" to {_p}
+		play sound "{@sound_error}" to {_p}
+		stop
+	
+	if {dupecore::BlacklistedItems::*} contains {_p}'s held item:
+		send "{@prefix_warn} %type of {_p}'s held item% is already blacklisted!" to {_p}
+		play sound "{@sound_error}" to {_p}
+		stop
+	
+	add {_p}'s held item to {dupecore::BlacklistedItems::*}
+	send "{@prefix_success} %type of {_p}'s held item% has been added to the blacklisted items!" to {_p}
+	play sound "{@sound_success}" to {_p}
+	
+function removeBlacklistedItem(p: player):
+	if {_p}'s held item is air:
+		send "{@prefix_log} Air cannot be blacklisted, Thus you cannot remove it from the blacklist!" to {_p}
+		play sound "{@sound_error}" to {_p}
+		stop
+	
+	if {dupecore::BlacklistedItems::*} does not contain {_p}'s held item:
+		send "{@prefix_warn} %type of {_p}'s held item% is not blacklisted!" to {_p}
+		play sound "{@sound_error}" to {_p}
+		stop
+	
+	remove {_p}'s held item from {dupecore::BlacklistedItems::*}
+	send "{@prefix_success} %type of {_p}'s held item% has been removed from the blacklisted items!" to {_p}
+	play sound "{@sound_success}" to {_p}
+
+function clearBlacklistedItems(p: player, override: boolean=false):
+	set {dupecore::RevertBlacklistedItems} to false
+	send "{@prefix_warn} All Blacklisted Items are about to be cleared!" to {_p} if {_override} is false
+	send "{@prefix_warn} &7You have &b30 seconds&7 till changes are complete!%nl%{@prefix_warn} &6/admindupe cancel &7to cancel this action" to {_p} if {_override} is false
+	play sound "{@sound_success}" to {_p} 
+	set {_delay} to 0 if {_override} is false
+	set {_delay} to 30 if {_override} is true
+	if {_override} is false:
+		while {dupecore::RevertBlacklistedItems} is set:
+			exit loop if {_delay} is 30
+			add 1 to {_delay}
+			set {_prefix::*} to "{@prefix_warn}" split at " "
+			send title "%{_prefix::1}%" with subtitle "&7All Blacklisted Items are about to be cleared,&6 /admindupe cancel &7to cancel" to {_p} for 1 second
+			play sound "{@sound_warning}" with volume 0.75 and pitch (random number between 0.5 and 0.75) to {_p}
+			wait 1 second
+			
+	if {dupecore::RevertBlacklistedItems} is set:
+		delete {dupecore::BlacklistedItems::*}
+		delete {dupecore::RevertBlacklistedItems}
+		send "{@prefix_success} All Blacklisted Items have been cleared!" to {_p}
+
+function dupePlayersItem(p: player, amount: integer=1):: integer:
+	if getCommandCooldown({_p}) is set:
+		setCommandCooldown({_p})
+		stop
+	if {_p} does not have permission "dupe.%{_amount}%":
+		send readJsonData("no_dupe_perms", {_p}) to {_p}
+		stop
+	
+	if {dupecore::BlacklistedItems::*} contains type of {_p}'s held item:
+		send readJsonData("duped_error_message", {_p}) to {_p}
+		stop
+		
+	if {dupecore::BlacklistedItems::*} contains {_p}'s held item:
+		send readJsonData("duped_error_message", {_p}) to {_p}
+		stop
+	
+	if (lore of {_p}'s held item) contains "{@exclusiveItemLore}":
+		send readJsonData("duped_error_message", {_p}) to {_p}
+		stop
+	
+	if {_p}'s held item is unbreakable:
+		if {@allowUnbreakableItems} is false:
+			send readJsonData("duped_error_message", {_p}) to {_p}
+			stop
+	
+	set {_items::*} to the inventory of {_p}'s held item
+	set {_itemsLore::*} to lores of {_items::*}
+	set {_bannedItems} to true if {dupecore::BlacklistedItems::*} contains {_items::*}
+	
+	set {_bannedItems} to true if {_itemsLore::*} contains "{@exclusiveItemLore}"
+	set {_bannedItems} to true if {_items::*} is unbreakable
+	if {_bannedItems} is true:
+		send readJsonData("contains_banned_items_message", {_p}) to {_p}
+		stop
+	
+	set {_item} to {_p}'s held item
+	set {_amountOfItem} to (amount of {_item} * {_amount})
+	
+	set {_message} to "%readJsonData("duped_success_message", {_p})%"
+	
+	
+	send replaceInMessage({_message}, "<amount>", "%{_amountOfItem}%") to {_p}
+	return {_amountOfItem}
+
+
+
+command /dupe [<integer>]:
+	trigger:
+		if arg-1 is set:	
+			give dupePlayersItem(player, arg-1) to player
+			stop
+		
+		give dupePlayersItem(player) to player
