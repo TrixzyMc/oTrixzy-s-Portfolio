@@ -12,7 +12,7 @@ Dupe Core is a free and open-sourced skript designed for Dupe Servers. This repo
 
 *Both components are mandatory.*
 
-## Dependancies
+## Dependencies
 - **Skript:**
   [Click Here to go to the Skript Plugin Download](https://github.com/SkriptLang/Skript/releases/)
 
