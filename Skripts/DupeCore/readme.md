@@ -10,6 +10,16 @@ Dupe Core is a free and open-sourced skript designed for Dupe Servers. This repo
 - **DupeAPI:**  
   An Required API Extension for DupeCore, Offering Additional Utilities, Customization Options.
 
+## Dependancies
+- **Skript:**
+  [Click Here to go to the Skript Plugin Download](https://github.com/SkriptLang/Skript/releases/)
+
+- **SkBee:**
+  [Click Here to go to the SkBee Plugin Download](https://modrinth.com/plugin/skbee)
+
+- **SkReflect:**
+  [Click Here to go to the SkReflect Plugin Download](https://github.com/SkriptLang/skript-reflect/releases)
+  
 *Both components are mandatory.*
 
 ## Features
