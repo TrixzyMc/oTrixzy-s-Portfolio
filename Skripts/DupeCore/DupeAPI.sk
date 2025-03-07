@@ -26,7 +26,7 @@ import:
 ####################
 
 function addJsonProperty(key: text, value: text):
-	set {_filePath} to "plugins/Skript/scripts/oTrixzyAPI/config.json"
+	set {_filePath} to "plugins/Skript/scripts/DupeCore/config.json"
 	set {_file} to new File({_filePath})
 	
 	if {_file}.exists() is false:
@@ -55,7 +55,7 @@ function addJsonProperty(key: text, value: text):
 	send "Property '%{_key}%' set to '%{_value}%' in the config file." to all players where [input has permission "api.admin"]
 	
 function ensureConfigFile():
-	set {_filePath} to "plugins/Skript/scripts/oTrixzyAPI/config.json"
+	set {_filePath} to "plugins/Skript/scripts/DupeCore/config.json"
 	set {_file} to new File({_filePath})
 
 	if {_file}.getParentFile().exists() is false:
@@ -77,7 +77,7 @@ function ensureConfigFile():
 		send "Config file already exists. Using existing config." to all players where [input has permission "api.admin"]
 
 function readJsonData(key: string, p: player={_p}):: object:
-	set {_filePath} to "plugins/Skript/scripts/oTrixzyAPI/config.json"
+	set {_filePath} to "plugins/Skript/scripts/DupeCore/config.json"
 	set {_parser} to new JsonParser()
 	set {_jsonElement} to {_parser}.parse(new FileReader({_filePath}))
 	if {_jsonElement}.isJsonObject():
