@@ -1,4 +1,10 @@
 # Options will be moved to config in the future!
+# This bans item type & the item, therefore you can ban custom items.
+## In the future this will support just items. Therefore if you ban ex. 64 of dirt, it will be banned for any amount! :)
+### Simple Fix was made to ban ex. any amount of dirt, Using ItemTypes.
+### This is a free, opensource, skript so don't expect a lot of support.
+### Although if you do need support add me on discord: oTrixzy
+
 options:
 	exclusiveItemLore: &c&lEXCLUSIVE ITEM # Add this to any item that you want to be exclusive and not dupeable.
 	allowUnbreakableItems: false
@@ -26,6 +32,7 @@ on load:
 	addJsonProperty("duped_error_message", "<prefix> Your item cannot be duped!")
 	addJsonProperty("no_dupe_perms", "<prefix> You do not have permission to do &b<amount> times!")
 	addJsonProperty("contains_banned_items_message", "<prefix> Your item cannot be duped because it contains banned items!")
+	addJsonProperty("cannot_dupe_air_message", "<prefix> You cannot dupe air.")
 	
 function blacklistItem(p: player):
 	if {_p}'s held item is air:
@@ -78,6 +85,23 @@ function clearBlacklistedItems(p: player, override: boolean=false):
 		delete {dupecore::RevertBlacklistedItems}
 		send "{@prefix_success} All Blacklisted Items have been cleared!" to {_p}
 
+function listBlacklistedItems(p: player):
+	send "&8[&6-----&e&lBLACKLISTED ITEMS&6-----&8]" to {_p}
+	send "" to {_p}
+	set {_items::*} to "%{dupecore::BlacklistedItems::*}%" split at ", "
+	loop {_items::*}:
+		send "&6%loop-index%&7: %type of loop-value%" to {_p}
+	
+	send "" to {_p}
+	send "&8[&6-----&e&l----------------&6-----&8]" to {_p}
+	
+function getLoresFromItems(items: object) :: strings:
+    loop {_items::*}:
+        if loop-value is not air:
+            add lore of loop-value to {_lores::*}
+            	
+    return {_lores::*}
+    
 function dupePlayersItem(p: player, amount: integer=1):: integer:
 	if getCommandCooldown({_p}) is set:
 		setCommandCooldown({_p})
@@ -86,7 +110,11 @@ function dupePlayersItem(p: player, amount: integer=1):: integer:
 		send readJsonData("no_dupe_perms", {_p}) to {_p}
 		stop
 	
-	if {dupecore::BlacklistedItems::*} contains type of {_p}'s held item:
+	if {_p}'s held item is air:
+		send readJsonData("cannot_dupe_air_message", {_p}) to {_p}
+		stop
+	
+	if "%{dupecore::BlacklistedItems::*}%" contains "%type of {_p}'s held item%":
 		send readJsonData("duped_error_message", {_p}) to {_p}
 		stop
 		
@@ -104,7 +132,9 @@ function dupePlayersItem(p: player, amount: integer=1):: integer:
 			stop
 	
 	set {_items::*} to the inventory of {_p}'s held item
-	set {_itemsLore::*} to lores of {_items::*}
+	loop {_items::*}:
+		if loop-value is not air:
+			add loop-value to {_itemsLore::*}
 	set {_bannedItems} to true if {dupecore::BlacklistedItems::*} contains {_items::*}
 	
 	set {_bannedItems} to true if {_itemsLore::*} contains "{@exclusiveItemLore}"
@@ -122,12 +152,51 @@ function dupePlayersItem(p: player, amount: integer=1):: integer:
 	send replaceInMessage({_message}, "<amount>", "%{_amountOfItem}%") to {_p}
 	return {_amountOfItem}
 
-
-
 command /dupe [<integer>]:
 	trigger:
 		if arg-1 is set:	
-			give dupePlayersItem(player, arg-1) to player
+			give player dupePlayersItem(player, arg-1) of player's held item 
 			stop
 		
-		give dupePlayersItem(player) to player
+		give player dupePlayersItem(player) of player's held item
+		
+		
+command /admindupe [<text>] [<text>] [<text>]:
+	trigger:
+		if arg-1 is not set:
+			send "&8[&6-----&e&lADMIN DUPE&6-----&8]" to player
+			send "" to player
+			send "&eCommands:" to player
+			send "&6- &f/admindupe blacklist add" to player
+			send "&6- &f/admindupe blacklist remove" to player
+			send "&6- &f/admindupe blacklist clear <override>" to player
+			send "&6- &f/admindupe blacklist list" to player
+			send "" to player
+			send "&8[&6-----&e&l---------&6-----&8]" to player
+			stop
+		
+		if arg-1 is "blacklist":
+			if arg-2 is "add":
+				blacklistItem(player)
+				stop
+			
+			if arg-2 is "remove":
+				removeBlacklistedItem(player)
+				stop
+			
+			if arg-2 is "clear":
+				if arg-3 is "override":
+					clearBlacklistedItems(player, true)
+					stop
+				clearBlacklistedItems(player)
+			
+			if arg-2 is "list":
+				listBlacklistedItems(player)
+				
+		
+		
+on tab complete of "/admindupe":
+	set tab completions for position 1 to "blacklist"
+	set tab completions for position 2 to "add", "remove", "clear", "list"
+	if tab arg-2 is "clear":
+		set tab completions for position 3 to "override"
