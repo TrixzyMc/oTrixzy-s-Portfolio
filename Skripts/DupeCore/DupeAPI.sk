@@ -1,0 +1,124 @@
+####################
+##### IMPORTANT ####
+####################
+# - This is from MyApi
+# - Do not edit without knowing what your doing.
+## - This code requires java knowledge!
+## - Required Addons: 
+### - Skript(https://github.com/SkriptLang/Skript/releases/)
+### - The Bee(https://modrinth.com/plugin/skbee)
+### - Sk-Reflect(https://github.com/SkriptLang/skript-reflect/releases)
+
+on load:
+	ensureConfigFile()
+	
+import:
+	java.io.FileWriter
+	java.io.File
+	java.io.FileReader
+	com.google.gson.Gson
+	com.google.gson.GsonBuilder
+	com.google.gson.JsonObject
+	com.google.gson.JsonParser
+	
+####################
+##### FUNCTIONS ####
+####################
+
+function addJsonProperty(key: text, value: text):
+	set {_filePath} to "plugins/Skript/scripts/oTrixzyAPI/config.json"
+	set {_file} to new File({_filePath})
+	
+	if {_file}.exists() is false:
+		send "Config file does not exist. Creating a new one..." to all players where [input has permission "api.admin"]
+		ensureConfigFile()
+
+	set {_parser} to new JsonParser()
+	set {_jsonElement} to {_parser}.parse(new FileReader({_filePath}))
+
+	if {_jsonElement}.isJsonObject():
+		set {_jsonObject} to {_jsonElement}.getAsJsonObject()
+	else:
+		send "Config file is not a valid JSON object. Creating a new JSON object." to all players where [input has permission "api.admin"]
+		set {_jsonObject} to new JsonObject()
+	   
+	if {_jsonObject}.has({_key}):
+		stop
+
+	{_jsonObject}.addProperty({_key}, {_value})
+
+	set {_gson} to new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create()
+	set {_writer} to new FileWriter({_filePath}, false)
+	{_gson}.toJson({_jsonObject}, {_writer})
+	{_writer}.close()
+
+	send "Property '%{_key}%' set to '%{_value}%' in the config file." to all players where [input has permission "api.admin"]
+	
+function ensureConfigFile():
+	set {_filePath} to "plugins/Skript/scripts/oTrixzyAPI/config.json"
+	set {_file} to new File({_filePath})
+
+	if {_file}.getParentFile().exists() is false:
+		{_file}.getParentFile().mkdirs()
+
+	if {_file}.exists() is false:
+		set {_created} to {_file}.createNewFile()
+		if {_created} is true:
+			send "Config file created successfully. Writing default config..." to all players where [input has permission "api.admin"]
+			set {_obj} to new JsonObject()
+			
+			set {_gson} to new GsonBuilder().setPrettyPrinting().create()
+			set {_writer} to new FileWriter({_filePath}, false)
+			{_gson}.toJson({_obj}, {_writer})
+			{_writer}.close()
+		else:
+			send "Failed to create config file." to all players where [input has permission "api.admin"]
+	else:
+		send "Config file already exists. Using existing config." to all players where [input has permission "api.admin"]
+
+function readJsonData(key: string, p: player={_p}):: object:
+	set {_filePath} to "plugins/Skript/scripts/oTrixzyAPI/config.json"
+	set {_parser} to new JsonParser()
+	set {_jsonElement} to {_parser}.parse(new FileReader({_filePath}))
+	if {_jsonElement}.isJsonObject():
+		set {_jsonObject} to {_jsonElement}.getAsJsonObject()
+		if {_jsonObject}.has({_key}):
+			set {_idValue} to {_jsonObject}.get({_key})
+			set {_finalMessage} to getMessageContents("%{_idValue}%", {_p})
+			return {_finalMessage}
+		else:
+			send "Invalid Key: %{_key}%" to all players where [input has permission "api.admin"]
+	else:
+		send "Config file does not contain a valid JSON object." to all players where [input has permission "api.admin"]
+		
+function getMessageContents(message: text,p: player):: text:
+	set {_returnedMessage} to "%{_message}%"
+	if {_returnedMessage} contains "<prefix>":
+		set {_returnedMessage} to replaceInMessage({_returnedMessage}, "<prefix>", readJsonData("prefix"))
+	if {_returnedMessage} contains "<cooldown>":
+		set {_returnedMessage} to replaceInMessage({_returnedMessage}, "<cooldown>", "%getCommandCooldown({_p})%")
+	
+	set {_returnedMessage} to replaceInMessage({_returnedMessage}, """", "")
+	set {_returnedMessage} to replaceInMessage({_returnedMessage}, "&", "§")
+	
+	return {_returnedMessage}
+	
+function setCommandCooldown(p: player, duration: number=5):
+	if getCommandCooldown({_p}) is set:
+		set {_cooldown_message} to "%readJsonData("cooldown_message", {_p})%"
+		send readJsonData("cooldown_message", {_p}) to {_p}
+	else:
+		set {CooldownHandler::%{_p}'s uuid%} to {_duration}
+		while {CooldownHandler::%{_p}'s uuid%} > -0.1:
+			set {CooldownHandler::%{_p}'s uuid%} to 0 if {CooldownHandler::%{_p}'s uuid%} is 0.1
+			send action bar readJsonData("cooldown_message", {_p}) to {_p}
+			remove 0.1 from {CooldownHandler::%{_p}'s uuid%}
+			wait 0.1 seconds
+		delete {CooldownHandler::%{_p}'s uuid%}
+
+function getCommandCooldown(p: player) :: number:
+	return {CooldownHandler::%{_p}'s uuid%} if {CooldownHandler::%{_p}'s uuid%} is set
+
+function replaceInMessage(message: text, from: object, to: object):: text:
+	replace all "%{_from}%" in {_message} with "%{_to}%"
+	return {_message}
