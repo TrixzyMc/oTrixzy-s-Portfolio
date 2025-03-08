@@ -162,6 +162,8 @@ command /dupe [<integer>]:
 		
 		
 command /admindupe [<text>] [<text>] [<text>]:
+	permission: dupe.admin
+	permission message: &cYou do not have permissions to perform this action.
 	trigger:
 		if arg-1 is not set:
 			send "&8[&6-----&e&lADMIN DUPE&6-----&8]" to player
