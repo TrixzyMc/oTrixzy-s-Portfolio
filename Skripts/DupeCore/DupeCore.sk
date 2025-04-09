@@ -1,10 +1,5 @@
-# Options will be moved to config in the future!
-# This bans item type & the item, therefore you can ban custom items.
-## In the future this will support just items. Therefore if you ban ex. 64 of dirt, it will be banned for any amount! :)
-### Simple Fix was made to ban ex. any amount of dirt, Using ItemTypes.
-### This is a free, opensource, skript so don't expect a lot of support.
-### Although if you do need support add me on discord: oTrixzy
-
+# If your reading this from portfolio website:
+#: This has its own API Please go to projects > Dupe Core > Github to get the full version!
 
 options:
 	exclusiveItemLore: &c&lEXCLUSIVE ITEM # Add this to any item that you want to be exclusive and not dupeable.
