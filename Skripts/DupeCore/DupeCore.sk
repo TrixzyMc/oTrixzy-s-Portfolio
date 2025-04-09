@@ -5,6 +5,7 @@
 ### This is a free, opensource, skript so don't expect a lot of support.
 ### Although if you do need support add me on discord: oTrixzy
 
+
 options:
 	exclusiveItemLore: &c&lEXCLUSIVE ITEM # Add this to any item that you want to be exclusive and not dupeable.
 	allowUnbreakableItems: false
@@ -34,6 +35,67 @@ on load:
 	addJsonProperty("contains_banned_items_message", "<prefix> Your item cannot be duped because it contains banned items!")
 	addJsonProperty("cannot_dupe_air_message", "<prefix> You cannot dupe air.")
 	
+function blacklistLore(p: player, t: text):
+	if {_t} is "":
+		send "{@prefix_error} You cannot blacklist no lore." to {_p}
+		play sound "{@sound_error}" to {_p}
+		stop
+		
+	if {dupecore::BlacklistedLores::*} contains {_t}:
+		send "{@prefix_error} This lore is already blacklisted, Thus you cannot blacklist this lore again." to {_p}
+		play sound "{@sound_error}" to {_p}
+		stop
+	
+	send "{@prefix_success} Added &e""%{_t}%&e"" &7to the blacklisted lores." to {_p}
+	add {_t} to {dupecore::BlacklistedLores::*}
+	play sound "{@sound_success}" to {_p}
+	
+function removeBlacklistedLore(p: player, t: text):
+	if {dupecore::BlacklistedLores::*} does not contain {_t}:
+		send "{@prefix_warn} This lore is not a Valid Lore." to {_p}
+		play sound "{@sound_warning}" to {_p}
+		stop
+	
+	remove {_p}'s held item from {dupecore::BlacklistedLores::*}
+	send "{@prefix_success} %type of {_p}'s held item% has been removed from the blacklisted items!" to {_p}
+	play sound "{@sound_success}" to {_p}
+
+function clearBlacklistedLore(p: player, override: boolean=false):
+	set {dupecore::RevertChanges} to false
+	send "{@prefix_warn} All blacklisted lores are about to be cleared!" to {_p} if {_override} is false
+	send "{@prefix_warn} You have &b30 Seconds&7 till changes are completed!%nl%{@prefix_warn} &6/admindupe cancel &7to cancel this action" to {_p} if {_override} is false
+	play sound "{@sound_success}" to {_p}
+	set {_delay} to 0 if {_override} is false
+	set {_delay} to 30 if {_override} is true
+	if {_override} is false:
+		while {dupecore::RevertChanges} is set:
+			exit loop if {_delay} is 30
+			add 1 to {_delay}
+			set {_prefix::*} to "{@prefix_warn}" split at " "
+			send title "%{_prefix::1}%" with subtitle "&7All Blacklisted Lores are about to be cleared,&6 /admindupe cancel &7to cancel" to {_p} for 1 second
+			play sound "{@sound_warning}" with volume 0.75 and pitch (random number between 0.5 and 0.75) to {_p}
+			wait 1 second
+		
+	if {dupecore::RevertChanges} is set:
+		delete {dupecore::BlacklistedLores::*}
+		delete {dupecore::RevertChanges}
+		send "{@prefix_success} All Blacklisted Lores have been cleared!" to {_p}
+		
+function listBlacklistedLores(p: player):
+	send "&8[&6-----&e&lBLACKLISTED LORES&6-----&8]" to {_p}
+	send "" to {_p}
+	
+	set {_lores::*} to "%{dupecore::BlacklistedLores::*}%" split at ", "
+	set {_lores::*} to "%{_lores::*}%" split at " and "
+	
+	loop {_lores::*}:
+		send "&6%loop-index%&7: %loop-value%" to {_p}
+	
+	send "" to {_p}
+	send "&8[&6-----&e&l----------------&6-----&8]" to {_p}
+
+# Item Manager
+
 function blacklistItem(p: player):
 	if {_p}'s held item is air:
 		send "{@prefix_error} You cannot blacklist air!" to {_p}
@@ -65,14 +127,14 @@ function removeBlacklistedItem(p: player):
 	play sound "{@sound_success}" to {_p}
 
 function clearBlacklistedItems(p: player, override: boolean=false):
-	set {dupecore::RevertBlacklistedItems} to false
+	set {dupecore::RevertChanges} to false
 	send "{@prefix_warn} All Blacklisted Items are about to be cleared!" to {_p} if {_override} is false
 	send "{@prefix_warn} &7You have &b30 seconds&7 till changes are complete!%nl%{@prefix_warn} &6/admindupe cancel &7to cancel this action" to {_p} if {_override} is false
 	play sound "{@sound_success}" to {_p} 
 	set {_delay} to 0 if {_override} is false
 	set {_delay} to 30 if {_override} is true
 	if {_override} is false:
-		while {dupecore::RevertBlacklistedItems} is set:
+		while {dupecore::RevertChanges} is set:
 			exit loop if {_delay} is 30
 			add 1 to {_delay}
 			set {_prefix::*} to "{@prefix_warn}" split at " "
@@ -80,9 +142,9 @@ function clearBlacklistedItems(p: player, override: boolean=false):
 			play sound "{@sound_warning}" with volume 0.75 and pitch (random number between 0.5 and 0.75) to {_p}
 			wait 1 second
 			
-	if {dupecore::RevertBlacklistedItems} is set:
+	if {dupecore::RevertChanges} is set:
 		delete {dupecore::BlacklistedItems::*}
-		delete {dupecore::RevertBlacklistedItems}
+		delete {dupecore::RevertChanges}
 		send "{@prefix_success} All Blacklisted Items have been cleared!" to {_p}
 
 function listBlacklistedItems(p: player):
@@ -96,12 +158,19 @@ function listBlacklistedItems(p: player):
 	send "&8[&6-----&e&l----------------&6-----&8]" to {_p}
 	
 function getLoresFromItems(items: object) :: strings:
-    loop {_items::*}:
-        if loop-value is not air:
-            add lore of loop-value to {_lores::*}
-            	
-    return {_lores::*}
+	loop {_items::*}:
+		exit loop if loop-value is air
+		add lore of loop-value to {_lores::*}
+
+	return {_lores::*}
     
+function getBlacklistedLores() :: strings:
+	loop {dupecore::BlacklistedLores::*}:
+		exit loop if loop-value is not set
+		add loop-value to {_lores::*}
+	
+	return {_lores::*}
+	
 function dupePlayersItem(p: player, amount: integer=1):: integer:
 	if getCommandCooldown({_p}) is set:
 		setCommandCooldown({_p})
@@ -122,9 +191,10 @@ function dupePlayersItem(p: player, amount: integer=1):: integer:
 		send readJsonData("duped_error_message", {_p}) to {_p}
 		stop
 	
-	if (lore of {_p}'s held item) contains "{@exclusiveItemLore}":
-		send readJsonData("duped_error_message", {_p}) to {_p}
-		stop
+	loop (size of getBlacklistedLores()) times:
+		if (lore of {_p}'s held item) contains {_blacklistedLores::%loop-value%}:
+			send readJsonData("duped_error_message", {_p}) to {_p}
+			stop
 	
 	if {_p}'s held item is unbreakable:
 		if {@allowUnbreakableItems} is false:
@@ -137,7 +207,7 @@ function dupePlayersItem(p: player, amount: integer=1):: integer:
 			add loop-value to {_itemsLore::*}
 	set {_bannedItems} to true if {dupecore::BlacklistedItems::*} contains {_items::*}
 	
-	set {_bannedItems} to true if {_itemsLore::*} contains "{@exclusiveItemLore}"
+	set {_bannedItems} to true if {_itemsLore::*} contains getBlacklistedLores()
 	set {_bannedItems} to true if {_items::*} is unbreakable
 	if {_bannedItems} is true:
 		send readJsonData("contains_banned_items_message", {_p}) to {_p}
@@ -161,20 +231,28 @@ command /dupe [<integer>]:
 		give player dupePlayersItem(player) of player's held item
 		
 		
-command /admindupe [<text>] [<text>] [<text>]:
+command /admindupe [<text>] [<text>] [<text>] [<text>]:
 	permission: dupe.admin
 	permission message: &cYou do not have permissions to perform this action.
 	trigger:
 		if arg-1 is not set:
-			send "&8[&6-----&e&lADMIN DUPE&6-----&8]" to player
+			send "     &8[&6-----&e&lADMIN DUPE&6-----&8]" to player
 			send "" to player
-			send "&eCommands:" to player
+			send "&8[&9----- &b&lBLACKLIST LORES&9 -----&8]" to player
+			send "" to player
 			send "&6- &f/admindupe blacklist add" to player
 			send "&6- &f/admindupe blacklist remove" to player
 			send "&6- &f/admindupe blacklist clear <override>" to player
 			send "&6- &f/admindupe blacklist list" to player
 			send "" to player
-			send "&8[&6-----&e&l---------&6-----&8]" to player
+			send "&8[&9----- &b&lBLACKLIST LORES&9 -----&8]" to player
+			send "" to player
+			send "&6- &f/admindupe blacklist lore add"
+			send "&6- &f/admindupe blacklist lore remove"
+			send "&6- &f/admindupe blacklist lore clear <override>"
+			send "&6- &f/admindupe blacklist lore list"
+			send "" to player
+			send "     &8[&6-----&e&l---------&6-----&8]" to player
 			stop
 		
 		if arg-1 is "blacklist":
@@ -182,7 +260,7 @@ command /admindupe [<text>] [<text>] [<text>]:
 				blacklistItem(player)
 				stop
 			
-			if arg-2 is "remove":
+			else if arg-2 is "remove":
 				removeBlacklistedItem(player)
 				stop
 			
@@ -194,11 +272,43 @@ command /admindupe [<text>] [<text>] [<text>]:
 			
 			if arg-2 is "list":
 				listBlacklistedItems(player)
+				stop
 				
-		
+			if arg-2 is "lore":
+				if arg-3 is "add":
+					blacklistLore(player, "%arg-4%")
+					
+				if arg-3 is "remove":
+					removeBlacklistedLore(player, arg-4)
+					
+				if arg-3 is "clear":
+					if arg-4 is "override":
+						clearBlacklistedLore(player, true)
+						stop
+					clearBlacklistedLore(player)
+					
+				if arg-3 is "list":
+					listBlacklistedLores(player)
+				
+		if arg-1 is "cancel":
+			if {dupecore::RevertChanges} is set:
+				send "{@prefix_success} Changes have been reverted." to player
+				delete {dupecore::RevertChanges}
+			else:
+				send "{@prefix_error} No changes we're found." to player
+				send "{@prefix_success} If there we're any changes they should be reverted or stopped." to player
+				delete {dupecore::RevertChanges}
 		
 on tab complete of "/admindupe":
-	set tab completions for position 1 to "blacklist"
-	set tab completions for position 2 to "add", "remove", "clear", "list"
+	set tab completions for position 1 to "blacklist", "cancel"
+	set tab completions for position 2 to "add", "remove", "clear", "list", "lore"
+	if tab arg-2 is "lore":
+		set tab completions for position 3 to "add", "remove", "clear", "list", "lore"
+		if tab arg-2 is not "list" or "clear":
+			set tab completions for position 4 to "ExampleLore"
+			
+		if tab arg-2 is "clear":
+			set tab completions for position 4 to "override"
+	
 	if tab arg-2 is "clear":
 		set tab completions for position 3 to "override"
