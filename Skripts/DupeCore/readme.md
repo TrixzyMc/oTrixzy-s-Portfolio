@@ -1,4 +1,4 @@
-# Dupe Core V1.0
+# Dupe Core V1.5
 
 ## Overview
 Dupe Core is a free and open-sourced skript designed for Dupe Servers. This repository contains two Skripts **DupeAPI.sk servers for a API for DupeCore.sk**, Therefore its a required component of this Library. 
